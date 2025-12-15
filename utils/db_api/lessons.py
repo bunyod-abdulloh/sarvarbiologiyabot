@@ -5,25 +5,59 @@ class LessonsDB:
     def __init__(self, db: Database):
         self.db = db
 
-    async def add_lesson(self, type_, file_id, caption):
-        sql = """
-            INSERT INTO lessons (type, file_id, caption) VALUES ($1, $2, $3)
+    async def add_to_free_lessons(self, category_id):
+        row_id = await self.db.execute(
             """
-        await self.db.execute(sql, type_, file_id, caption, execute=True)
+            INSERT INTO free_lessons (category_id)
+            VALUES ($1)            
+            RETURNING id
+            """,
+            category_id,
+            fetchval=True
+        )
+
+        if row_id:
+            return row_id
+
+        return await self.db.execute(
+            "SELECT id FROM free_lessons WHERE category_id = $1",
+            category_id,
+            fetchval=True
+        )
+
+    async def add_to_free_lessons_files(self, lesson_id, file_id, file_type, caption):
+        sql = """
+            INSERT INTO free_lessons_files (lesson_id, file_id, file_type, caption) VALUES ($1, $2, $3, $4)
+            """
+        await self.db.execute(sql, lesson_id, file_id, file_type, caption, execute=True)
 
     async def get_free_lessons_by_category(self):
         sql = """
-            SELECT DISTINCT ON (category_name)
-                   category_name, category_id
-            FROM lessons
-            WHERE paid = FALSE
-            ORDER BY category_name, category_id
+            SELECT DISTINCT
+                c.id,
+                c.name
+            FROM categories c
+            JOIN free_lessons f ON f.category_id = c.id
+            ORDER BY c.name
             """
         return await self.db.execute(sql, fetch=True)
 
     async def get_lessons_by_category_id(self, category_id):
         sql = """
-            SELECT id, position, type, file_id, caption FROM lessons WHERE category_id = $1 
+            SELECT
+                ROW_NUMBER() OVER (
+                    PARTITION BY l.category_id
+                    ORDER BY f.created_at
+                ) AS row_number,
+                f.id        AS file_row_id,
+                f.file_id,
+                f.file_type,
+                f.caption,
+                f.created_at
+            FROM free_lessons_files f
+            JOIN free_lessons l ON l.id = f.lesson_id
+            WHERE l.category_id = $1
+            ORDER BY f.created_at 
             """
         return await self.db.execute(sql, category_id, fetch=True)
 

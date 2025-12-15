@@ -71,9 +71,33 @@ class Database:
     async def create_tables(self):
         queries = [
             """
+                CREATE TABLE IF NOT EXISTS categories (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(255) UNIQUE NOT NULL,
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE TABLE IF NOT EXISTS paid_lessons (
+                    id SERIAL PRIMARY KEY,
+                    category_id INTEGER NOT NULL REFERENCES categories(id),                    
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE TABLE IF NOT EXISTS paid_lessons_files (
+                    id SERIAL PRIMARY KEY,
+                    lesson_id INTEGER NOT NULL REFERENCES paid_lessons(id) ON DELETE CASCADE,
+                    file_id TEXT NOT NULL,
+                    file_type VARCHAR(20) NOT NULL,
+                    caption TEXT NULL,
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
+            """,
+            """
                 CREATE TABLE IF NOT EXISTS paid_users (
                     id SERIAL PRIMARY KEY,
-                    telegram_id BIGINT NOT NULL,                    
+                    telegram_id BIGINT NOT NULL UNIQUE,                    
                     created_at TIMESTAMP DEFAULT NOW()                                
                 );
             """,
@@ -90,50 +114,21 @@ class Database:
                 );
             """,
             """
-            CREATE TABLE IF NOT EXISTS lessons (
-                id SERIAL PRIMARY KEY,
-                paid BOOLEAN DEFAULT FALSE,
-                category_name VARCHAR(255) NULL,
-                category_id INTEGER NULL,
-                position INTEGER,
-                type VARCHAR(255),
-                file_id VARCHAR(300),
-                caption VARCHAR(4000)
-            );
+                CREATE TABLE IF NOT EXISTS free_lessons (
+                    id SERIAL PRIMARY KEY,
+                    category_id INTEGER NOT NULL REFERENCES categories(id),                    
+                    created_at TIMESTAMP DEFAULT NOW()
+                );            
             """,
-
-            # sequence
             """
-            CREATE SEQUENCE IF NOT EXISTS lessons_position_seq START 1;
-            """,
-
-            # trigger function
-            """
-            CREATE OR REPLACE FUNCTION lessons_set_position()
-            RETURNS TRIGGER AS $$
-            BEGIN
-                IF NEW.position IS NULL THEN
-                    NEW.position := nextval('lessons_position_seq');
-                END IF;
-                RETURN NEW;
-            END;
-            $$ LANGUAGE plpgsql;
-            """,
-
-            # trigger
-            """
-            DO $$
-            BEGIN
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_trigger WHERE tgname = 'trg_lessons_set_position'
-                ) THEN
-                    CREATE TRIGGER trg_lessons_set_position
-                    BEFORE INSERT ON lessons
-                    FOR EACH ROW
-                    EXECUTE FUNCTION lessons_set_position();
-                END IF;
-            END;
-            $$;
+                CREATE TABLE IF NOT EXISTS free_lessons_files (
+                    id SERIAL PRIMARY KEY,
+                    lesson_id INTEGER NOT NULL REFERENCES free_lessons(id) ON DELETE CASCADE,
+                    file_id TEXT NOT NULL,
+                    file_type VARCHAR(20) NOT NULL,
+                    caption TEXT NULL,
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
             """
         ]
 

@@ -1,5 +1,5 @@
 from data.config import CHANNELS
-from keyboards.inline.admin.main_ikbs import check_or_cancel_ikb
+from keyboards.inline.admin.main_ikbs import check_or_cancel_ikb, send_answer_ikb
 from loader import bot
 
 
@@ -27,7 +27,7 @@ async def send_to_admin(
         await bot.send_message(
             chat_id=admin_id,
             text=content,
-            reply_markup=check_or_cancel_ikb(telegram_id)
+            reply_markup=send_answer_ikb(telegram_id)
         )
 
 

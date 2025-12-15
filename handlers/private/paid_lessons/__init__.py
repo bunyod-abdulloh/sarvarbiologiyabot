@@ -1,1 +1,1 @@
-from . import p_main
+from . import main

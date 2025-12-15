@@ -1,18 +1,19 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from magic_filter import F
 
-from loader import dp, bot
+from keyboards.inline.admin.callbacks import check_cancel_cb, answer_cb
+from loader import dp, bot, pdb
 from states.admin import AdminStates
 
 
-@dp.callback_query_handler(F.data.startswith("cancel_"), state="*")
-async def handle_user_cancel_message(call: types.CallbackQuery, state: FSMContext):
-    telegram_id = call.data.split("_")[1]
+@dp.callback_query_handler(check_cancel_cb.filter(action="cancel"), state="*")
+async def handle_user_cancel_message(call: types.CallbackQuery, state: FSMContext, callback_data: dict):
+    telegram_id = callback_data.get("value")
     await state.update_data(
         user_telegram_id=telegram_id
     )
-    await call.message.edit_text(
+    await call.answer(cache_time=0)
+    await call.message.answer(
         text="Rad etilish sababini kiriting"
     )
     await AdminStates.CANCEL_MESSAGE.set()
@@ -37,20 +38,51 @@ async def handle_cancel_message_second(message: types.Message, state: FSMContext
     await state.finish()
 
 
-@dp.callback_query_handler(F.data.startswith("confirmation_"), state="*")
-async def handle_user_cancel_message(call: types.CallbackQuery, state: FSMContext):
-    telegram_id = call.data.split("_")[1]
+@dp.callback_query_handler(check_cancel_cb.filter(action="confirmation"), state="*")
+async def handle_user_cancel_message(call: types.CallbackQuery, callback_data: dict):
+    telegram_id = int(callback_data.get("value"))
 
     try:
         await bot.send_message(
             chat_id=telegram_id,
-            text="To'lovingiz admin tomonidan tasdiqlandi! Marhamat darslarimizdan foydalanishingiz mumkin!",
+            text="To'lovingiz admin tomonidan tasdiqlandi! Darslarimizdan foydalanishingiz mumkin!",
             reply_markup=None
         )
-        await call.message.edit_text(
+        await pdb.add_to_pd(telegram_id)
+        await call.answer(cache_time=0)
+        await call.message.answer(
             text="Tasdiq xabari foydalanuvchiga yuborildi!"
         )
     except Exception as err:
         await call.message.answer(
             text=f"XATOLIK:\n\n{err}"
         )
+
+
+@dp.callback_query_handler(answer_cb.filter(action="answer"), state="*")
+async def handle_send_answer(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    telegram_id = callback_data.get("value")
+    await state.update_data(user_telegram=telegram_id)
+    await call.message.answer(
+        text="Javob xabaringizni kiriting"
+    )
+    await AdminStates.ANSWER_MESSAGE.set()
+
+
+@dp.message_handler(state=AdminStates.ANSWER_MESSAGE, content_types=types.ContentType.TEXT)
+async def handle_answer_text_message(message: types.Message, state: FSMContext):
+    telegram_id = (await state.get_data()).get("user_telegram")
+
+    try:
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=f"Savolingizga admin javobi:\n\n{message.text}"
+        )
+        await message.answer(
+            text="Xabar foydalanuvchiga yuborildi!"
+        )
+    except Exception as err:
+        await message.answer(
+            text=f"Xatolik:\n\n{err}"
+        )
+    await state.finish()

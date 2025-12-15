@@ -45,6 +45,7 @@ def image_or_text_ibtn():
             text="Matnli", callback_data="text_message"
         )
     )
+    return btn
 
 
 def category_free_ibtn(items, current_page, all_pages):
@@ -52,9 +53,9 @@ def category_free_ibtn(items, current_page, all_pages):
     for category in items:
         btn.add(
             InlineKeyboardButton(
-                text=category['category_name'],
+                text=category['name'],
                 callback_data=free_less_cat_cb.new(
-                    action="category", value=category['category_id']
+                    action="category", value=category['id']
                 )
             )
         )
@@ -78,27 +79,34 @@ def category_free_ibtn(items, current_page, all_pages):
             )
         )
     )
+    btn.add(
+        InlineKeyboardButton(
+            text="⬅️ Ortga", callback_data=free_less_cat_cb.new(
+                action="back", value="1"
+            )
+        )
+    )
     return btn
 
 
 def key_returner(items, current_page, all_pages, selected):
     btn = InlineKeyboardMarkup(row_width=10)
     for item in items:
-        if selected == item['position']:
+        if selected == item['row_number']:
             btn.insert(
                 InlineKeyboardButton(
-                    text=f"[ {item['position']} ]",
+                    text=f"[ {item['row_number']} ]",
                     callback_data=free_lessons_cb.new(
-                        action="slctd", value=item['id'], c_pg=current_page
+                        action="slctd", value=item['file_row_id'], c_pg=current_page
                     )
                 )
             )
         else:
             btn.insert(
                 InlineKeyboardButton(
-                    text=f"{item['position']}",
+                    text=f"{item['row_number']}",
                     callback_data=free_lessons_cb.new(
-                        action="no_slctd", value=item['id'], c_pg=current_page
+                        action="no_slctd", value=item['file_row_id'], c_pg=current_page
                     )
                 )
             )
@@ -106,7 +114,7 @@ def key_returner(items, current_page, all_pages, selected):
         InlineKeyboardButton(
             text="◀️",
             callback_data=free_lessons_cb.new(
-                action="prev", value=items[0]['id'], c_pg=current_page
+                action="prev", value=items[0]['file_row_id'], c_pg=current_page
             )
         ),
         InlineKeyboardButton(
@@ -118,7 +126,14 @@ def key_returner(items, current_page, all_pages, selected):
         InlineKeyboardButton(
             text="▶️",
             callback_data=free_lessons_cb.new(
-                action="next", value=items[0]['id'], c_pg=current_page
+                action="next", value=items[0]['file_row_id'], c_pg=current_page
+            )
+        )
+    )
+    btn.add(
+        InlineKeyboardButton(
+            text="⬅️ Ortga", callback_data=free_lessons_cb.new(
+                action="back", value="1", c_pg="1"
             )
         )
     )

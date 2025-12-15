@@ -7,15 +7,15 @@ from magic_filter import F
 
 from filters.admins import IsBotAdminFilter
 from handlers.private.start import bot_start
-from keyboards.default.admin_buttons import admin_main_buttons
-from loader import dp, db
+from keyboards.default.admin.main import admin_main_dkb
+from loader import dp, udb, pdb, admdb
 from states.admin import AdminStates
 from utils.db_functions import send_media_group_to_users, send_message_to_users
 
 WARNING_TEXT = (
-    "Habar yuborishdan oldin postingizni yaxshilab tekshirib oling!\n\n"
+    "Xabar yuborishdan oldin postingizni yaxshilab tekshirib oling!\n\n"
     "Imkoni bo'lsa postingizni oldin tayyorlab olib keyin yuboring.\n\n"
-    "Habaringizni kiriting:"
+    "Xabaringizni kiriting:"
 )
 
 ALERT_TEXT = "Xabar yuborish jarayoni yoqilgan! Hisobot kelganidan so'ng xabar yuborishingiz mumkin!"
@@ -23,7 +23,7 @@ ALERT_TEXT = "Xabar yuborish jarayoni yoqilgan! Hisobot kelganidan so'ng xabar y
 
 @dp.message_handler(IsBotAdminFilter(), Command(commands="admin"))
 async def admin_main_page(message: types.Message):
-    await message.answer("Admin panel", reply_markup=admin_main_buttons)
+    await message.answer("Admin panel", reply_markup=admin_main_dkb())
 
 
 @dp.message_handler(IsBotAdminFilter(), F.text == "🏡 Bosh sahifa", state="*")
@@ -31,15 +31,24 @@ async def back_to_main_page(message: types.Message, state: FSMContext):
     await bot_start(message, state)
 
 
-@dp.message_handler(IsBotAdminFilter(), F.text == "😎 Foydalanuvchilar soni")
+@dp.message_handler(IsBotAdminFilter(), F.text == "😎 Umumiy foydalanuvchilar soni")
 async def user_count(message: types.Message):
-    count = await db.count_users()
-    await message.answer(f"Foydalanuvchilar soni: {count}")
+    count = await udb.count_users()
+    await message.answer(f"Umumiy foydalanuvchilar soni: {count}")
 
 
-@dp.message_handler(IsBotAdminFilter(), F.text == "✅ Oddiy post yuborish")
+@dp.message_handler(IsBotAdminFilter(), F.text == "💸 Pullik foydalanuvchilar", state="*")
+async def handle_count_paid_users(message: types.Message, state: FSMContext):
+    await state.finish()
+    count = await pdb.count_users_pd()
+    await message.answer(
+        text=f"Pullik foydalanuvchilar soni: {count}"
+    )
+
+
+@dp.message_handler(IsBotAdminFilter(), F.text == "✅ Oddiy e'lon yuborish")
 async def send_to_bot_users(message: types.Message):
-    send_status = await db.get_send_status()
+    send_status = await admdb.get_send_status()
     if send_status is True:
         await message.answer(ALERT_TEXT)
     else:
@@ -55,9 +64,9 @@ async def send_to_bot_users_two(message: types.Message, state: FSMContext):
     await message.answer(text=f"Xabar yuborildi!\n\nYuborildi: {success}\nYuborilmadi: {failed}")
 
 
-@dp.message_handler(IsBotAdminFilter(), F.text == "🎞 Mediagroup post yuborish")
+@dp.message_handler(IsBotAdminFilter(), F.text == "🎥 Media e'lon yuborish")
 async def send_media_to_bot(message: types.Message):
-    send_status = await db.get_send_status()
+    send_status = await admdb.get_send_status()
     if send_status is True:
         await message.answer(ALERT_TEXT)
     else:
@@ -68,7 +77,7 @@ async def send_media_to_bot(message: types.Message):
 @dp.message_handler(state=AdminStates.SEND_MEDIA_TO_USERS, content_types=types.ContentTypes.ANY, is_media_group=True)
 async def send_media_to_bot_second(message: types.Message, album: List[types.Message], state: FSMContext):
     await state.finish()
-    await message.answer(text="Habar yuborish boshlandi...", reply_markup=types.ReplyKeyboardRemove())
+    await message.answer(text="Xabar yuborish boshlandi...", reply_markup=types.ReplyKeyboardRemove())
     try:
         media_group = types.MediaGroup()
 
