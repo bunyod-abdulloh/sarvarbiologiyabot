@@ -20,9 +20,15 @@ async def free_lessons_main(call: types.CallbackQuery, state: FSMContext):
         return
 
     files = await lesdb.get_free_lessons_by_category()
-    items, pages = paginate(files)
 
-    await call.message.edit_text(
-        text="Kerakli kategoriyani tanlang",
-        reply_markup=category_free_ibtn(items[0], 1, pages)
-    )
+    if files:
+        items, pages = paginate(files)
+
+        await call.message.edit_text(
+            text="Kerakli kategoriyani tanlang",
+            reply_markup=category_free_ibtn(items[0], 1, pages)
+        )
+    else:
+        await call.answer(
+            text="Hozircha darslar joylanmadi!", show_alert=True
+        )

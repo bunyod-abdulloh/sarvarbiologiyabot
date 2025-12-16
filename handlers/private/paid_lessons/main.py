@@ -14,12 +14,18 @@ async def handle_paid_lessons_main(call: types.CallbackQuery, state: FSMContext)
 
     if user:
         files = await lesdb.get_paid_lessons_by_category()
-        items, pages = paginate(files)
 
-        await call.message.edit_text(
-            text="Kerakli kategoriyani tanlang",
-            reply_markup=category_paid_ibtn(items[0], 1, pages)
-        )
+        if files:
+            items, pages = paginate(files)
+
+            await call.message.edit_text(
+                text="Kerakli kategoriyani tanlang",
+                reply_markup=category_paid_ibtn(items[0], 1, pages)
+            )
+        else:
+            await call.answer(
+                text="Hozircha darslar joylanmadi!", show_alert=True
+            )
     else:
         await call.message.edit_text(
             text="Ushbu darslarimizdan foydalanish uchun quyidagi kartamizga to'lov qilishingiz lozim:"
