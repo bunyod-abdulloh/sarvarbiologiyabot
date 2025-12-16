@@ -4,7 +4,7 @@ from keyboards.inline.user.ibuttons import key_returner
 from loader import lesdb
 
 
-def paginate(files, per_page=1):
+def paginate(files, per_page=50):
     from utils.helpers import extracter
     items = extracter(files, per_page)
     return items, len(items)
@@ -32,7 +32,8 @@ async def open_lesson(
         selected=position
     )
 
-    await send_media(call.message, lesson, key)
+    for l in lesson:
+        await send_media(call.message, l, key)
 
 
 async def send_media(message, lesson, reply_markup):

@@ -2,9 +2,9 @@ from aiogram import types
 
 from handlers.private.free_lessons.pagination import change_page
 from keyboards.inline.user.callbacks import free_lessons_cb
-from keyboards.inline.user.ibuttons import category_free_ibtn
+from keyboards.inline.user.ibuttons import category_free_ibtn, content_back_ikb
 from loader import dp, lesdb
-from utils.lessons import open_lesson, paginate
+from utils.lessons import paginate
 
 
 @dp.callback_query_handler(free_lessons_cb.filter(action="slctd"))
@@ -12,14 +12,21 @@ async def handle_free_lessons_slctd(call: types.CallbackQuery):
     await call.answer(cache_time=0)
 
 
-@dp.callback_query_handler(free_lessons_cb.filter(action="no_slctd"), state="*")
+@dp.callback_query_handler(free_lessons_cb.filter(action="content"), state="*")
 async def handle_no_slctd(call: types.CallbackQuery, callback_data: dict):
-    position = int(callback_data.get("value"))
+    await call.answer(cache_time=0)
+    lesson_id = int(callback_data.get("value"))
     current_page = int(callback_data.get("c_pg"))
+    lesson = await lesdb.get_lesson_by_lesson_id(lesson_id)
 
-    await open_lesson(
-        call=call, position=position, page=current_page, category_id=position
-    )
+    for media in lesson:
+        if media['file_type'] == "video":
+            await call.message.answer_video(
+                video=media['file_id'],
+                caption=media['caption'],
+                protect_content=True,
+                reply_markup=content_back_ikb(category_id=lesson_id, current_page=current_page)
+            )
 
 
 @dp.callback_query_handler(free_lessons_cb.filter(action="next"))
@@ -27,8 +34,10 @@ async def handle_no_slctd(call: types.CallbackQuery, callback_data: dict):
 async def handle_free_lessons_prev(call: types.CallbackQuery, callback_data: dict):
     current_page = int(callback_data.get("c_pg"))
     action = callback_data.get("action")
+    category_id = int(callback_data.get("value"))
+
     await change_page(
-        call, current_page, action
+        call=call, current_page=current_page, action=action, category_id=category_id
     )
 
 
@@ -47,4 +56,16 @@ async def handle_free_lessons_back(call: types.CallbackQuery):
     await call.message.answer(
         text="Kerakli kategoriyani tanlang",
         reply_markup=category_free_ibtn(items[0], 1, pages)
+    )
+
+
+@dp.callback_query_handler(free_lessons_cb.filter(action="content_back"), state="*")
+async def handle_content_back(call: types.CallbackQuery, callback_data: dict):
+    current_page = int(callback_data.get("c_pg"))
+    lesson_id = int(callback_data.get("value"))
+
+    category_id = await lesdb.get_lesson_category_id_by_lesson_id(lesson_id)
+
+    await change_page(
+        call=call, current_page=current_page, action="next", category_id=category_id
     )

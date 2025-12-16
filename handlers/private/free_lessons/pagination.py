@@ -1,20 +1,21 @@
 import aiogram.utils.exceptions
 from aiogram import types
 
-from keyboards.inline.user.ibuttons import category_free_ibtn
+from keyboards.inline.user.ibuttons import category_free_ibtn, view_free_lessons_ikb
 from loader import lesdb
-from utils.lessons import paginate, open_lesson
+from utils.lessons import paginate
 
 
 async def change_page(
         call: types.CallbackQuery,
         current_page: int,
-        action: str
+        action: str,
+        category_id: int
 ):
     """
     Free lessons pagination
     """
-    files = await lesdb.get_lesson_free()
+    files = await lesdb.get_lessons_by_category_id(category_id)
     items, total_pages = paginate(files)
 
     if not items:
@@ -31,13 +32,22 @@ async def change_page(
     elif new_page > total_pages:
         new_page = 1
 
-    lesson = items[new_page - 1][0]
+    key = view_free_lessons_ikb(
+        items[new_page - 1], new_page, total_pages, category_id
+    )
+
     try:
-        await open_lesson(call, lesson["position"], new_page)
+        await call.message.edit_text(
+            text="Kerakli darsni tanlang", reply_markup=key
+        )
     except aiogram.utils.exceptions.MessageNotModified:
         await call.answer(cache_time=0)
         pass
-
+    except aiogram.utils.exceptions.BadRequest:
+        await call.message.delete()
+        await call.message.answer(
+                    text="Kerakli darsni tanlang", reply_markup=key
+                )
 
 # =========================
 # CATEGORY PAGINATION

@@ -42,6 +42,7 @@ async def handle_add_free_lessons(message: types.Message, state: FSMContext):
 
     lesson_id = await lesdb.add_to_free_lessons(category_id=category_id)
 
+    # for n in range(100):
     await lesdb.add_to_free_lessons_files(
         lesson_id, file_id, file_type, caption
     )
