@@ -7,11 +7,6 @@ from loader import dp, lesdb
 from utils.lessons import paginate
 
 
-@dp.callback_query_handler(free_lessons_cb.filter(action="slctd"))
-async def handle_free_lessons_slctd(call: types.CallbackQuery):
-    await call.answer(cache_time=0)
-
-
 @dp.callback_query_handler(free_lessons_cb.filter(action="content"), state="*")
 async def handle_no_slctd(call: types.CallbackQuery, callback_data: dict):
     await call.answer(cache_time=0)
@@ -23,6 +18,27 @@ async def handle_no_slctd(call: types.CallbackQuery, callback_data: dict):
         if media['file_type'] == "video":
             await call.message.answer_video(
                 video=media['file_id'],
+                caption=media['caption'],
+                protect_content=True,
+                reply_markup=content_back_ikb(category_id=lesson_id, current_page=current_page)
+            )
+        elif media['file_type'] == "audio":
+            await call.message.answer_audio(
+                audio=media['file_id'],
+                caption=media['caption'],
+                protect_content=True,
+                reply_markup=content_back_ikb(category_id=lesson_id, current_page=current_page)
+            )
+        elif media['file_type'] == "document":
+            await call.message.answer_document(
+                document=media['file_id'],
+                caption=media['caption'],
+                protect_content=True,
+                reply_markup=content_back_ikb(category_id=lesson_id, current_page=current_page)
+            )
+        elif media['file_type'] == "voice":
+            await call.message.answer_voice(
+                voice=media['file_id'],
                 caption=media['caption'],
                 protect_content=True,
                 reply_markup=content_back_ikb(category_id=lesson_id, current_page=current_page)
@@ -52,8 +68,7 @@ async def handle_free_lessons_back(call: types.CallbackQuery):
     files = await lesdb.get_free_lessons_by_category()
     items, pages = paginate(files)
 
-    await call.message.delete()
-    await call.message.answer(
+    await call.message.edit_text(
         text="Kerakli kategoriyani tanlang",
         reply_markup=category_free_ibtn(items[0], 1, pages)
     )

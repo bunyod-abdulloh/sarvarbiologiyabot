@@ -1,7 +1,8 @@
 import aiogram.utils.exceptions
 from aiogram import types
 
-from keyboards.inline.user.ibuttons import category_free_ibtn, view_free_lessons_ikb
+from keyboards.inline.user.ibuttons import category_free_ibtn, view_free_lessons_ikb, category_paid_ibtn, \
+    view_paid_lessons_ikb
 from loader import lesdb
 from utils.lessons import paginate
 
@@ -10,12 +11,13 @@ async def change_page(
         call: types.CallbackQuery,
         current_page: int,
         action: str,
-        category_id: int
+        category_id: int,
+        paid=False
 ):
-    """
-    Free lessons pagination
-    """
-    files = await lesdb.get_lessons_by_category_id(category_id)
+    if paid:
+        files = await lesdb.get_lessons_paid_by_category_id(category_id)
+    else:
+        files = await lesdb.get_lessons_by_category_id(category_id)
     items, total_pages = paginate(files)
 
     if not items:
@@ -32,9 +34,14 @@ async def change_page(
     elif new_page > total_pages:
         new_page = 1
 
-    key = view_free_lessons_ikb(
-        items[new_page - 1], new_page, total_pages, category_id
-    )
+    if paid:
+        key = view_paid_lessons_ikb(
+            items[new_page - 1], new_page, total_pages, category_id
+        )
+    else:
+        key = view_free_lessons_ikb(
+            items[new_page - 1], new_page, total_pages, category_id
+        )
 
     try:
         await call.message.edit_text(
@@ -56,13 +63,16 @@ async def change_page(
 async def change_page_category(
         call: types.CallbackQuery,
         current_page: int,
-        action: str
+        action: str,
+        paid=False
 ):
     """
     Category ichidagi darslar uchun pagination
     """
-
-    files = await lesdb.get_free_lessons_by_category()
+    if paid:
+        files = await lesdb.get_paid_lessons_by_category()
+    else:
+        files = await lesdb.get_free_lessons_by_category()
     items, total_pages = paginate(files)
 
     if not items:
@@ -79,9 +89,14 @@ async def change_page_category(
     elif new_page > total_pages:
         new_page = 1
 
-    key = category_free_ibtn(
-        items=items[new_page - 1], current_page=new_page, all_pages=total_pages
-    )
+    if paid:
+        key = category_paid_ibtn(
+            items=items[new_page - 1], current_page=new_page, all_pages=total_pages
+        )
+    else:
+        key = category_free_ibtn(
+            items=items[new_page - 1], current_page=new_page, all_pages=total_pages
+        )
 
     try:
         await call.message.edit_text(

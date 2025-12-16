@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 
 from handlers.private.free_lessons.pagination import change_page_category
 from keyboards.inline.user.callbacks import free_less_cat_cb
-from keyboards.inline.user.ibuttons import main_page_ibtn, view_free_lessons_ikb
+from keyboards.inline.user.ibuttons import main_page_ibtn, view_free_lessons_ikb, view_paid_lessons_ikb
 from loader import dp, lesdb
 from utils.helpers import extracter
 

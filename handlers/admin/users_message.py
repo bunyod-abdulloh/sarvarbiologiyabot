@@ -48,7 +48,7 @@ async def handle_user_cancel_message(call: types.CallbackQuery, callback_data: d
             text="To'lovingiz admin tomonidan tasdiqlandi! Darslarimizdan foydalanishingiz mumkin!",
             reply_markup=None
         )
-        await pdb.add_to_pd(telegram_id)
+        await pdb.add_to_paid_users(telegram_id)
         await call.answer(cache_time=0)
         await call.message.answer(
             text="Tasdiq xabari foydalanuvchiga yuborildi!"

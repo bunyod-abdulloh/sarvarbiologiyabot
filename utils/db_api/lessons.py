@@ -45,6 +45,27 @@ class LessonsDB:
         """
         return await self.db.execute(sql, fetch=True)
 
+    async def get_lessons_categories(self):
+        sql = """
+            SELECT DISTINCT id, name FROM categories ORDER BY name
+        """
+        return await self.db.execute(sql, fetch=True)
+
+
+    async def get_paid_lessons_by_category(self):
+        sql = """
+            SELECT DISTINCT
+                c.id,
+                c.name
+            FROM categories c
+            JOIN paid_lessons f
+                ON f.category_id = c.id
+            JOIN paid_lessons_files ff
+                ON ff.lesson_id = f.id
+            ORDER BY c.name
+        """
+        return await self.db.execute(sql, fetch=True)
+
     async def get_lessons_by_category_id(self, category_id):
         sql = """
             SELECT
@@ -67,6 +88,28 @@ class LessonsDB:
             """
         return await self.db.execute(sql, category_id, fetch=True)
 
+    async def get_lessons_paid_by_category_id(self, category_id):
+        sql = """
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY f.created_at) AS row_number,
+                f.id        AS file_row_id,
+                f.lesson_id,
+                f.file_id,
+                f.file_type,
+                f.caption,
+                f.created_at
+            FROM (
+                SELECT DISTINCT ON (f.lesson_id)
+                    f.*
+                FROM paid_lessons_files f
+                JOIN paid_lessons l ON l.id = f.lesson_id
+                WHERE l.category_id = $1
+                ORDER BY f.lesson_id, f.created_at
+            ) f
+            ORDER BY f.created_at 
+            """
+        return await self.db.execute(sql, category_id, fetch=True)
+
     async def get_lesson_free(self):
         sql = """
             SELECT id, position, type, file_id, caption FROM lessons WHERE paid = FALSE
@@ -79,8 +122,20 @@ class LessonsDB:
             """
         return await self.db.execute(sql, lesson_id, fetch=True)
 
+    async def get_paid_lesson(self, lesson_id):
+        sql = """
+            SELECT file_type, file_id, caption FROM paid_lessons_files WHERE lesson_id = $1
+            """
+        return await self.db.execute(sql, lesson_id, fetch=True)
+
     async def get_lesson_category_id_by_lesson_id(self, lesson_id):
         sql = """
             SELECT category_id FROM free_lessons WHERE id = $1
+            """
+        return await self.db.execute(sql, lesson_id, fetchval=True)
+
+    async def get_paid_categories(self, lesson_id):
+        sql = """
+            SELECT category_id FROM paid_lessons WHERE id = $1
             """
         return await self.db.execute(sql, lesson_id, fetchval=True)

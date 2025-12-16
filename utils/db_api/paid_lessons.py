@@ -52,7 +52,11 @@ class PaidLessonsDB:
             """
         await self.db.execute(sql, lesson_id, file_id, file_type, caption, execute=True)
 
-
+    async def add_to_paid_users(self, telegram_id):
+        sql = """
+            INSERT INTO paid_users (telegram_id) VALUES ($1) ON CONFLICT (telegram_id) DO NOTHING
+            """
+        await self.db.execute(sql, telegram_id, execute=True)
 
     async def count_users_pd(self):
         sql = """
@@ -68,6 +72,6 @@ class PaidLessonsDB:
 
     async def check_paid_user(self, telegram_id):
         sql = """
-            SELECT EXISTS (SELECT 1 FROM paid_lessons WHERE telegram_id = $1)
+            SELECT EXISTS (SELECT 1 FROM paid_users WHERE telegram_id = $1)
             """
         return await self.db.execute(sql, telegram_id, fetchval=True)

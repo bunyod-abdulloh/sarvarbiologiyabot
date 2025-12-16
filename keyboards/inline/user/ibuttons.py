@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from data.config import CHANNELS
-from keyboards.inline.user.callbacks import free_lessons_cb, free_less_cat_cb
+from keyboards.inline.user.callbacks import free_lessons_cb, free_less_cat_cb, paid_less_cat_cb, paid_lessons_cb
 from loader import bot
 
 
@@ -89,51 +89,41 @@ def category_free_ibtn(items, current_page, all_pages):
     return btn
 
 
-def key_returner(items, current_page, all_pages, selected):
-    btn = InlineKeyboardMarkup(row_width=5)
-    for item in items:
-        if selected == item['row_number']:
-            btn.insert(
-                InlineKeyboardButton(
-                    text=f"[ {item['row_number']} ]",
-                    callback_data=free_lessons_cb.new(
-                        action="slctd", value=item['file_row_id'], c_pg=current_page
-                    )
+def category_paid_ibtn(items, current_page, all_pages):
+    btn = InlineKeyboardMarkup(row_width=1)
+    for category in items:
+        btn.add(
+            InlineKeyboardButton(
+                text=category['name'],
+                callback_data=paid_less_cat_cb.new(
+                    action="paid_category", value=category['id']
                 )
             )
-        else:
-            btn.insert(
-                InlineKeyboardButton(
-                    text=f"{item['row_number']}",
-                    callback_data=free_lessons_cb.new(
-                        action="no_slctd", value=item['file_row_id'], c_pg=current_page
-                    )
-                )
-            )
+        )
     btn.row(
         InlineKeyboardButton(
             text="◀️",
-            callback_data=free_lessons_cb.new(
-                action="prev", value=items[0]['file_row_id'], c_pg=current_page
+            callback_data=paid_less_cat_cb.new(
+                action="paid_prev", value=current_page
             )
         ),
         InlineKeyboardButton(
             text=f"{current_page}/{all_pages}",
-            callback_data=free_lessons_cb.new(
-                action="alert", value="0", c_pg=current_page
+            callback_data=paid_less_cat_cb.new(
+                action="paid_alert", value=current_page
             )
         ),
         InlineKeyboardButton(
             text="▶️",
-            callback_data=free_lessons_cb.new(
-                action="next", value=items[0]['file_row_id'], c_pg=current_page
+            callback_data=paid_less_cat_cb.new(
+                action="paid_next", value=current_page
             )
         )
     )
     btn.add(
         InlineKeyboardButton(
-            text="⬅️ Ortga", callback_data=free_lessons_cb.new(
-                action="back", value="1", c_pg="1"
+            text="⬅️ Ortga", callback_data=paid_less_cat_cb.new(
+                action="paid_back", value="1"
             )
         )
     )
@@ -187,6 +177,59 @@ def content_back_ikb(category_id, current_page):
         InlineKeyboardButton(
             text="⬅️ Ortga", callback_data=free_lessons_cb.new(
                 action="content_back", value=category_id, c_pg=current_page
+            )
+        )
+    )
+    return btn
+
+
+def view_paid_lessons_ikb(items, current_page, all_pages, category_id):
+    btn = InlineKeyboardMarkup(row_width=5)
+
+    for n in items:
+        btn.insert(
+            InlineKeyboardButton(
+                text=n['row_number'], callback_data=paid_lessons_cb.new(
+                    action="paid_content", value=n['lesson_id'], c_pg=current_page
+                )
+            )
+        )
+    btn.row(
+        InlineKeyboardButton(
+            text="◀️",
+            callback_data=paid_lessons_cb.new(
+                action="pd_prev", value=category_id, c_pg=current_page
+            )
+        ),
+        InlineKeyboardButton(
+            text=f"{current_page}/{all_pages}",
+            callback_data=paid_lessons_cb.new(
+                action="pd_alert", value="0", c_pg=current_page
+            )
+        ),
+        InlineKeyboardButton(
+            text="▶️",
+            callback_data=paid_lessons_cb.new(
+                action="pd_next", value=category_id, c_pg=current_page
+            )
+        )
+    )
+    btn.add(
+        InlineKeyboardButton(
+            text="⬅️ Ortga", callback_data=paid_lessons_cb.new(
+                action="pd_back", value="1", c_pg="1"
+            )
+        )
+    )
+    return btn
+
+
+def content_paid_back_ikb(category_id, current_page):
+    btn = InlineKeyboardMarkup(row_width=1)
+    btn.add(
+        InlineKeyboardButton(
+            text="⬅️ Ortga", callback_data=paid_lessons_cb.new(
+                action="paid_content_back", value=category_id, c_pg=current_page
             )
         )
     )

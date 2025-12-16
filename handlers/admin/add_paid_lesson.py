@@ -11,7 +11,7 @@ from utils.lessons import get_file_id_caption
 
 @dp.message_handler(F.text == "💰 Pullik dars qo'shish", state="*")
 async def handle_add_paid_lessons(message: types.Message, state: FSMContext):
-    categories = await lesdb.get_free_lessons_by_category()
+    categories = await lesdb.get_lessons_categories()
 
     categories_str = "Mavjud kategoriyalar:\n\n"
 
