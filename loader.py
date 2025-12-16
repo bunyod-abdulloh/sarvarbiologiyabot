@@ -3,6 +3,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
 from data import config
+from data.config import REDIS_PASS
 from utils.db_api.admins import AdminsDB
 from utils.db_api.create_tables import Database
 from utils.db_api.lessons import LessonsDB
