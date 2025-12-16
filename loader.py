@@ -1,5 +1,6 @@
 from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
 from data import config
 from utils.db_api.admins import AdminsDB
@@ -9,7 +10,14 @@ from utils.db_api.paid_lessons import PaidLessonsDB
 from utils.db_api.users import UsersDB
 
 bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
-storage = MemoryStorage()
+storage = RedisStorage2(
+    host='localhost',
+    port=6379,
+    db=5,
+    state_ttl=3600,
+    data_ttl=3600,
+    password=REDIS_PASS
+)
 dp = Dispatcher(bot, storage=storage)
 db = Database()
 udb = UsersDB(db)
