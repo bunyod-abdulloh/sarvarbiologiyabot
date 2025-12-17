@@ -76,7 +76,7 @@ async def handle_add_second_free_(message: types.Message, state: FSMContext):
         lesson_id = await lesdb.add_to_free_lessons(category_id=category_id)
         media = await bot.forward_message(
             chat_id=ADMINS[0],
-            from_chat_id=-1003678955708,
+            from_chat_id=-1002932868497,
             message_id=n
         )
 
