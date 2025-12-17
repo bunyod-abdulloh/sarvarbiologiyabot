@@ -60,13 +60,13 @@ class PaidLessonsDB:
 
     async def count_users_pd(self):
         sql = """
-            SELECT COUNT(id) FROM paid_lessons
+            SELECT COUNT(id) FROM paid_users
             """
         return await self.db.execute(sql, fetchval=True)
 
     async def delete_from_pd(self, telegram_id):
         sql = """
-            DELETE FROM paid_lessons WHERE telegram_id = $1
+            DELETE FROM paid_users WHERE telegram_id = $1
             """
         await self.db.execute(sql, telegram_id, execute=True)
 
