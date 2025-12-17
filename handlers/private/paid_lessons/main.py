@@ -29,7 +29,7 @@ async def handle_paid_lessons_main(call: types.CallbackQuery, state: FSMContext)
     else:
         await call.message.edit_text(
             text="Ushbu darslarimizdan foydalanish uchun quyidagi kartamizga to'lov qilishingiz lozim:"
-                 "\n\n<code>123456789</code>\n\n<b>FALONCHI FALONCHIYEV</b>\n\nTo'lov qilib bo'lganingizdan so'ng chekni "
+                 "\n\n<code>4073420061122325</code>\n\n<b>Sarvar Rahmonqulov</b>\n\nTo'lov qilib bo'lganingizdan so'ng chekni "
                  "skrin qilib <b>Adminga xabar</b> bo'limiga yuboring. Admin to'lovni tekshirib tasdiqlasa, Sizga darslarni "
                  "ochib qo'yadi"
         )
