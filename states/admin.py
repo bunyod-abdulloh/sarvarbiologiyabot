@@ -12,3 +12,6 @@ class AdminStates(StatesGroup):
     FREE_CATEGORY = State()
     FREE_LESSONS_ONE = State()
     FREE_LESSONS_TWO = State()
+    FREE_LESSONS_THREE = State()
+    FREE_LESSONS_FOUR = State()
+    FREE_LESSONS_FIVE = State()

@@ -136,7 +136,7 @@ def view_free_lessons_ikb(items, current_page, all_pages, category_id):
     for n in items:
         btn.insert(
             InlineKeyboardButton(
-                text=n['row_number'], callback_data=free_lessons_cb.new(
+                text=n['lesson_number'], callback_data=free_lessons_cb.new(
                     action="content", value=n['lesson_id'], c_pg=current_page
                 )
             )
@@ -230,6 +230,23 @@ def content_paid_back_ikb(category_id, current_page):
         InlineKeyboardButton(
             text="⬅️ Ortga", callback_data=paid_lessons_cb.new(
                 action="paid_content_back", value=category_id, c_pg=current_page
+            )
+        )
+    )
+    return btn
+
+
+def select_free_lesson_type_ikb():
+    btn = InlineKeyboardMarkup(row_width=2)
+    btn.row(
+        InlineKeyboardButton(
+            text="❌ Yo'q", callback_data=free_lessons_cb.new(
+                action="no_add_free", value="0", c_pg="0"
+            )
+        ),
+        InlineKeyboardButton(
+            text="✅ Bor", callback_data=free_lessons_cb.new(
+                action="yes_add_free", value="0", c_pg="0"
             )
         )
     )

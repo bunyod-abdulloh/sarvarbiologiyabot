@@ -25,11 +25,11 @@ class LessonsDB:
             fetchval=True
         )
 
-    async def add_to_free_lessons_files(self, lesson_id, file_id, file_type, caption):
+    async def add_to_free_lessons_files(self, lesson_number, lesson_id, file_id, file_type, caption):
         sql = """
-            INSERT INTO free_lessons_files (lesson_id, file_id, file_type, caption) VALUES ($1, $2, $3, $4)
+            INSERT INTO free_lessons_files (lesson_number, lesson_id, file_id, file_type, caption) VALUES ($1, $2, $3, $4, $5)
             """
-        await self.db.execute(sql, lesson_id, file_id, file_type, caption, execute=True)
+        await self.db.execute(sql, lesson_number, lesson_id, file_id, file_type, caption, execute=True)
 
     async def get_free_lessons_by_category(self):
         sql = """
@@ -71,18 +71,19 @@ class LessonsDB:
             SELECT
                 ROW_NUMBER() OVER (ORDER BY f.created_at) AS row_number,
                 f.id        AS file_row_id,
+                f.lesson_number,
                 f.lesson_id,
                 f.file_id,
                 f.file_type,
                 f.caption,
                 f.created_at
             FROM (
-                SELECT DISTINCT ON (f.lesson_id)
+                SELECT DISTINCT ON (f.lesson_number)
                     f.*
                 FROM free_lessons_files f
                 JOIN free_lessons l ON l.id = f.lesson_id
                 WHERE l.category_id = $1
-                ORDER BY f.lesson_id, f.created_at
+                ORDER BY f.lesson_number, f.created_at
             ) f
             ORDER BY f.created_at 
             """
@@ -93,6 +94,7 @@ class LessonsDB:
             SELECT
                 ROW_NUMBER() OVER (ORDER BY f.created_at) AS row_number,
                 f.id        AS file_row_id,
+                f.lesson_number,
                 f.lesson_id,
                 f.file_id,
                 f.file_type,
