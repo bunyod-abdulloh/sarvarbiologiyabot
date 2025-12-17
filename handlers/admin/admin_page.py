@@ -21,8 +21,9 @@ WARNING_TEXT = (
 ALERT_TEXT = "Xabar yuborish jarayoni yoqilgan! Hisobot kelganidan so'ng xabar yuborishingiz mumkin!"
 
 
-@dp.message_handler(IsBotAdminFilter(), Command(commands="admin"))
-async def admin_main_page(message: types.Message):
+@dp.message_handler(IsBotAdminFilter(), Command(commands="admin"), state="*")
+async def admin_main_page(message: types.Message, state: FSMContext):
+    await state.finish()
     await message.answer("Admin panel", reply_markup=admin_main_dkb())
 
 
@@ -46,8 +47,9 @@ async def handle_count_paid_users(message: types.Message, state: FSMContext):
     )
 
 
-@dp.message_handler(IsBotAdminFilter(), F.text == "✅ Oddiy e'lon yuborish")
-async def send_to_bot_users(message: types.Message):
+@dp.message_handler(IsBotAdminFilter(), F.text == "✅ Oddiy e'lon yuborish", state="*")
+async def send_to_bot_users(message: types.Message, state: FSMContext):
+    await state.finish()
     send_status = await admdb.get_send_status()
     if send_status is True:
         await message.answer(ALERT_TEXT)
@@ -64,8 +66,9 @@ async def send_to_bot_users_two(message: types.Message, state: FSMContext):
     await message.answer(text=f"Xabar yuborildi!\n\nYuborildi: {success}\nYuborilmadi: {failed}")
 
 
-@dp.message_handler(IsBotAdminFilter(), F.text == "🎥 Media e'lon yuborish")
-async def send_media_to_bot(message: types.Message):
+@dp.message_handler(IsBotAdminFilter(), F.text == "🎥 Media e'lon yuborish", state="*")
+async def send_media_to_bot(message: types.Message, state: FSMContext):
+    await state.finish()
     send_status = await admdb.get_send_status()
     if send_status is True:
         await message.answer(ALERT_TEXT)
