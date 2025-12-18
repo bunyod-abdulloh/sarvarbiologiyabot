@@ -24,7 +24,7 @@ async def open_free_category(call: types.CallbackQuery, callback_data: dict):
     items = extracter(files, 50)
 
     if not items:
-        await call.message.answer("Bu kategoriyada hozircha dars yo‘q.")
+        await call.message.answer("Bu kategoriyada hozircha masala yo‘q.")
         return
 
     all_pages = len(items)
@@ -33,7 +33,7 @@ async def open_free_category(call: types.CallbackQuery, callback_data: dict):
         items[0], 1, all_pages, category_id
     )
     await call.message.edit_text(
-        text="Kerakli darsni tanlang", reply_markup=key
+        text="Kerakli masalani tanlang", reply_markup=key
     )
 
 

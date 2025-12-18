@@ -46,11 +46,11 @@ class PaidLessonsDB:
             fetchval=True
         )
 
-    async def add_to_pd_lessons_files(self, lesson_id, file_id, file_type, caption):
+    async def add_to_pd_lessons_files(self, lesson_number, lesson_id, file_id, file_type, caption):
         sql = """
-            INSERT INTO paid_lessons_files (lesson_id, file_id, file_type, caption) VALUES ($1, $2, $3, $4)
+            INSERT INTO paid_lessons_files (lesson_number, lesson_id, file_id, file_type, caption) VALUES ($1, $2, $3, $4, $5)
             """
-        await self.db.execute(sql, lesson_id, file_id, file_type, caption, execute=True)
+        await self.db.execute(sql, lesson_number, lesson_id, file_id, file_type, caption, execute=True)
 
     async def add_to_paid_users(self, telegram_id):
         sql = """

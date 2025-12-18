@@ -87,6 +87,7 @@ class Database:
             """
                 CREATE TABLE IF NOT EXISTS paid_lessons_files (
                     id SERIAL PRIMARY KEY,
+                    lesson_number VARCHAR(50) NULL,
                     lesson_id INTEGER NOT NULL REFERENCES paid_lessons(id) ON DELETE CASCADE,
                     file_id TEXT NOT NULL,
                     file_type VARCHAR(20) NOT NULL,

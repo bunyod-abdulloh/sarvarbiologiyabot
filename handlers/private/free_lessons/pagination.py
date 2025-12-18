@@ -45,7 +45,7 @@ async def change_page(
 
     try:
         await call.message.edit_text(
-            text="Kerakli darsni tanlang", reply_markup=key
+            text="Kerakli masalani tanlang", reply_markup=key
         )
     except aiogram.utils.exceptions.MessageNotModified:
         await call.answer(cache_time=0)
@@ -53,7 +53,7 @@ async def change_page(
     except aiogram.utils.exceptions.BadRequest:
         await call.message.delete()
         await call.message.answer(
-                    text="Kerakli darsni tanlang", reply_markup=key
+                    text="Kerakli masalani tanlang", reply_markup=key
                 )
 
 # =========================

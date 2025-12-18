@@ -34,7 +34,7 @@ async def open_paid_category(call: types.CallbackQuery, callback_data: dict):
         items[0], 1, all_pages, category_id
     )
     await call.message.edit_text(
-        text="Kerakli darsni tanlang", reply_markup=key
+        text="Kerakli masalani tanlang", reply_markup=key
     )
 
 

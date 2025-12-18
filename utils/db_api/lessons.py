@@ -51,6 +51,18 @@ class LessonsDB:
         """
         return await self.db.execute(sql, fetch=True)
 
+    async def get_categories(self):
+        sql = """
+            SELECT id, name FROM categories ORDER BY id ASC
+            """
+        return await self.db.execute(sql, fetch=True)
+
+    async def set_category_name(self, name, category_id):
+        sql = """
+            UPDATE categories SET name = $1 WHERE id = $2
+            """
+        await self.db.execute(sql, name, category_id, execute=True)
+
 
     async def get_paid_lessons_by_category(self):
         sql = """
@@ -124,6 +136,48 @@ class LessonsDB:
             """
         return await self.db.execute(sql, lesson_id, fetch=True)
 
+    async def check_free_lesson(self, lesson_id):
+        sql = """
+            SELECT EXISTS (SELECT 1 FROM free_lessons_files ff WHERE ff.id = $1)
+            """
+        return await self.db.execute(sql, lesson_id, fetchval=True)
+
+    async def check_paid_lesson_category_exists(self, paid_file_id: int, category_id: int) -> bool:
+        sql = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM paid_lessons_files plf
+                JOIN paid_lessons pl ON pl.id = plf.lesson_id
+                JOIN categories c ON c.id = pl.category_id
+                WHERE plf.id = $1 AND c.id = $2 
+            )
+        """
+        return await self.db.execute(sql, paid_file_id, category_id, fetchval=True)
+
+    async def check_free_lesson_category_exists(self, paid_file_id: int, category_id: int) -> bool:
+        sql = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM free_lessons_files flf
+                JOIN free_lessons fl ON fl.id = flf.lesson_id
+                JOIN categories c ON c.id = fl.category_id
+                WHERE flf.id = $1 AND c.id = $2 
+            )
+        """
+        return await self.db.execute(sql, paid_file_id, category_id, fetchval=True)
+
+    async def set_free_lesson(self, file_id, file_type, caption, lesson_number, lesson_id):
+        sql = """
+            UPDATE free_lessons_files SET file_id = $1, file_type = $2, caption = $3, lesson_number = $4 WHERE id = $5
+            """
+        await self.db.execute(sql, file_id, file_type, caption, lesson_number, lesson_id, execute=True)
+
+    async def set_paid_lesson(self, file_id, file_type, caption, lesson_number, lesson_id):
+        sql = """
+            UPDATE paid_lessons_files SET file_id = $1, file_type = $2, caption = $3, lesson_number = $4 WHERE id = $5
+            """
+        await self.db.execute(sql, file_id, file_type, caption, lesson_number, lesson_id, execute=True)
+
     async def get_paid_lesson(self, lesson_id):
         sql = """
             SELECT file_type, file_id, caption FROM paid_lessons_files WHERE lesson_id = $1
@@ -141,3 +195,21 @@ class LessonsDB:
             SELECT category_id FROM paid_lessons WHERE id = $1
             """
         return await self.db.execute(sql, lesson_id, fetchval=True)
+
+    async def delete_category(self, category_id):
+        sql = """
+            DELETE FROM categories WHERE id = $1
+            """
+        await self.db.execute(sql, category_id, execute=True)
+
+    async def delete_lesson_free(self, lesson_id):
+        sql = """
+            DELETE FROM free_lessons_files WHERE id = $1
+            """
+        await self.db.execute(sql, lesson_id, execute=True)
+
+    async def delete_lesson_paid(self, lesson_id):
+        sql = """
+            DELETE FROM paid_lessons_files WHERE id = $1
+            """
+        await self.db.execute(sql, lesson_id, execute=True)
