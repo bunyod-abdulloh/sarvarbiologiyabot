@@ -80,7 +80,7 @@ class Database:
             """
                 CREATE TABLE IF NOT EXISTS paid_lessons (
                     id SERIAL PRIMARY KEY,
-                    category_id INTEGER NOT NULL REFERENCES categories(id),                    
+                    category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,                    
                     created_at TIMESTAMP DEFAULT NOW()
                 );
             """,
@@ -117,7 +117,7 @@ class Database:
             """
                 CREATE TABLE IF NOT EXISTS free_lessons (
                     id SERIAL PRIMARY KEY,
-                    category_id INTEGER NOT NULL REFERENCES categories(id),                    
+                    category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,                    
                     created_at TIMESTAMP DEFAULT NOW()
                 );            
             """,
