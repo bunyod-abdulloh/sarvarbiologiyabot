@@ -4,7 +4,7 @@ from aiogram import types
 from keyboards.inline.user.ibuttons import category_free_ibtn, view_free_lessons_ikb, category_paid_ibtn, \
     view_paid_lessons_ikb
 from loader import lesdb
-from utils.lessons import paginate, paginate_category
+from utils.lessons import paginate_category
 
 
 async def change_page(
@@ -18,7 +18,7 @@ async def change_page(
         files = await lesdb.get_lessons_paid_by_category_id(category_id)
     else:
         files = await lesdb.get_lessons_by_category_id(category_id)
-    items, total_pages = paginate(files)
+    items, total_pages = paginate_category(files)
 
     if not items:
         await call.answer("Darslar topilmadi", show_alert=True)
