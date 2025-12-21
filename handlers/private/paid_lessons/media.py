@@ -5,7 +5,7 @@ from keyboards.inline.user.callbacks import paid_lessons_cb
 from keyboards.inline.user.ibuttons import category_paid_ibtn, \
     content_paid_back_ikb
 from loader import dp, lesdb
-from utils.lessons import paginate
+from utils.lessons import paginate_category
 
 
 @dp.callback_query_handler(paid_lessons_cb.filter(action="paid_content"), state="*")
@@ -46,7 +46,7 @@ async def handle_paid_lessons_alert(call: types.CallbackQuery, callback_data: di
 @dp.callback_query_handler(paid_lessons_cb.filter(action="pd_back"))
 async def handle_paid_lessons_back(call: types.CallbackQuery):
     files = await lesdb.get_paid_lessons_by_category()
-    items, pages = paginate(files)
+    items, pages = paginate_category(files)
 
     await call.message.edit_text(
         text="Kerakli kategoriyani tanlang",
