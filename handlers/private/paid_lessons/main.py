@@ -4,7 +4,7 @@ from magic_filter import F
 
 from keyboards.inline.user.ibuttons import category_paid_ibtn
 from loader import dp, pdb, lesdb
-from utils.lessons import paginate
+from utils.lessons import paginate_category
 
 
 @dp.callback_query_handler(F.data == "paid_lessons", state="*")
@@ -16,7 +16,7 @@ async def handle_paid_lessons_main(call: types.CallbackQuery, state: FSMContext)
         files = await lesdb.get_paid_lessons_by_category()
 
         if files:
-            items, pages = paginate(files)
+            items, pages = paginate_category(files)
 
             await call.message.edit_text(
                 text="Kerakli kategoriyani tanlang",

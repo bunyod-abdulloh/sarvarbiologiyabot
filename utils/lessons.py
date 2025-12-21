@@ -9,6 +9,12 @@ def paginate(files, per_page=50):
     return items, len(items)
 
 
+def paginate_category(files, per_page=10):
+    from utils.helpers import extracter
+    items = extracter(files, per_page)
+    return items, len(items)
+
+
 def get_file_id_caption(message: types.Message):
     file_id = None
     file_type = None

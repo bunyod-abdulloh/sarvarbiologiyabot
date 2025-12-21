@@ -41,7 +41,7 @@ class LessonsDB:
                 ON f.category_id = c.id
             JOIN free_lessons_files ff
                 ON ff.lesson_id = f.id
-            ORDER BY c.name
+            ORDER BY c.id
         """
         return await self.db.execute(sql, fetch=True)
 
@@ -74,7 +74,7 @@ class LessonsDB:
                 ON f.category_id = c.id
             JOIN paid_lessons_files ff
                 ON ff.lesson_id = f.id
-            ORDER BY c.name
+            ORDER BY c.id
         """
         return await self.db.execute(sql, fetch=True)
 
