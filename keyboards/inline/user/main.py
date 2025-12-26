@@ -13,6 +13,11 @@ def main_page_ibtn():
     )
     btn.add(
         InlineKeyboardButton(
+            text="💎 Pullik darslar", callback_data="paid_lessons"
+        )
+    )
+    btn.add(
+        InlineKeyboardButton(
             text="📲 Adminga xabar", callback_data="send_to_admin"
         )
     )
