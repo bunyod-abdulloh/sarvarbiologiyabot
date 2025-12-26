@@ -2,7 +2,8 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from magic_filter import F
 
-from keyboards.inline.user.ibuttons import category_free_ibtn, subscribe_ibtn
+from keyboards.inline.user.free import category_free_ibtn
+from keyboards.inline.user.main import subscribe_ibtn
 from loader import dp, lesdb
 from utils.helpers import is_subscribed
 from utils.lessons import paginate_category
@@ -19,7 +20,7 @@ async def free_lessons_main(call: types.CallbackQuery, state: FSMContext):
         )
         return
 
-    files = await lesdb.get_free_lessons_by_category()
+    files = await lesdb.get_free_categories()
 
     if files:
         items, pages = paginate_category(files)

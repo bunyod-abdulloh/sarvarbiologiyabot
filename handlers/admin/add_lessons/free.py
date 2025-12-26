@@ -5,27 +5,50 @@ from magic_filter import F
 from data.config import ADMINS, BASE_CHANNEL
 from keyboards.inline.admin.callbacks import yes_no_cb
 from keyboards.inline.admin.main_ikbs import yes_no_ikb
-from loader import dp, lesdb, pdb, bot
+from loader import dp, lesdb, bot
 from states.admin import AdminStates
-from utils.lessons import save_free_lesson_file, extract_masala_number, get_file_id_caption
-from .common import build_categories_text
+from utils.lessons import extract_masala_number, get_file_id_caption, save_lesson_file
 
 
-@dp.message_handler(F.text == "🆓 Bepul dars qo'shish", state="*")
+@dp.message_handler(F.text == "🆓 Bepul", state="*")
 async def free_add_start(message: types.Message, state: FSMContext):
     await state.finish()
-    categories = await lesdb.get_lessons_categories()
-    await message.answer(
-        build_categories_text(categories) + "\n\nKategoriya nomini kiriting"
-    )
+
     await AdminStates.FREE_CATEGORY.set()
+    categories = await lesdb.get_lessons_categories()
+    text = "Mavjud kategoriyalar\n\n"
+    for index, c in enumerate(categories, 1):
+        text += f"{index}. {c['name']}\n"
+    await message.answer(
+        f"{text}\nKategoriya nomini kiriting"
+    )
 
 
 @dp.message_handler(state=AdminStates.FREE_CATEGORY, content_types=types.ContentType.TEXT)
 async def free_set_category(message: types.Message, state: FSMContext):
-    category_id = await pdb.add_to_categories(message.text)
+    category_id = await lesdb.add_category(int(message.text))
     await state.update_data(category_id=int(category_id))
 
+    subcategories = await lesdb.get_subcategories(category_id)
+
+    if subcategories:
+        subcategories_str = "Ushbu kategoriyaga tegishli subkategoriyalar\n\n"
+
+        for index, s in enumerate(subcategories, 1):
+            subcategories_str += f"{index}. {s['name']}\n"
+
+        await message.answer(
+            text=f"{subcategories_str}\nSubkategoriya nomini kiriting"
+        )
+
+        await AdminStates.FREE_SUBCATEGORY.set()
+    else:
+        await message.answer(text="Bu kategoriyada subkategoriyalar mavjud emas!")
+
+
+@dp.message_handler(state=AdminStates.FREE_SUBCATEGORY, content_types=['text'])
+async def free_set_subcategory(message: types.Message, state: FSMContext):
+    await state.update_data(subcategory_name=message.text)
     await message.answer("Qo‘shimcha material bormi?", reply_markup=yes_no_ikb())
 
 
@@ -45,15 +68,18 @@ async def free_set_first_id(message: types.Message, state: FSMContext):
 @dp.message_handler(state=AdminStates.FREE_LESSONS_TWO)
 async def free_add_by_range(message: types.Message, state: FSMContext):
     data = await state.get_data()
+    category_id = data.get("category_id")
+    subcategory_name = data.get("subcategory_name")
 
     for msg_id in range(data["first_id"], int(message.text) + 1):
-        lesson_id = await lesdb.add_to_free_lessons(data["category_id"])
+        subcategory_id = await lesdb.add_subcategory(category_id, subcategory_name)
+        lesson_id = await lesdb.add_lessons(subcategory_id)
         media = await bot.forward_message(
             chat_id=ADMINS[0],
             from_chat_id=BASE_CHANNEL,
             message_id=msg_id
         )
-        await save_free_lesson_file(lesson_id, media, media.caption)
+        await save_lesson_file(lesson_id, media, media.caption)
 
     await message.answer("Bepul darslar qo‘shildi")
     await state.finish()
@@ -100,10 +126,15 @@ async def free_add_extra_file(message: types.Message, state: FSMContext):
 @dp.message_handler(state=AdminStates.FREE_LESSONS_FIVE)
 async def free_finalize(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    lesson_id = await lesdb.add_to_free_lessons(data["category_id"])
+    subcategory_name = data.get("subcategory_name")
+    category_id = data.get("category_id")
+
+    subcategory_id = await lesdb.add_subcategory(category_id, subcategory_name)
+
+    lesson_id = await lesdb.add_lessons(subcategory_id)
 
     for part in ("main", "extra"):
-        await lesdb.add_to_free_lessons_files(
+        await lesdb.add_lesson_files(
             lesson_number=message.text,
             lesson_id=lesson_id,
             **data[part]

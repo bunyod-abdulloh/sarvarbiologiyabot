@@ -1,11 +1,11 @@
 import asyncpg.exceptions
 from aiogram import types
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters import CommandStart
+from aiogram.dispatcher.filters import CommandStart, Command
 from magic_filter import F
 
 from keyboards.default.user.default_buttons import user_main_dkb
-from keyboards.inline.user.ibuttons import main_page_ibtn
+from keyboards.inline.user.main import main_page_ibtn
 from loader import dp, udb
 from utils.helpers import is_subscribed
 
@@ -38,3 +38,9 @@ async def handle_main_page(message: types.Message, state: FSMContext):
         await message.answer(
             text="Botdan to'liq foydalanish uchun kanalimizga a'zo bo'ling!"
         )
+
+
+@dp.message_handler(Command("cancel"), state="*")
+async def cancel_all_states(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer(text="Holat bekor qilindi!")

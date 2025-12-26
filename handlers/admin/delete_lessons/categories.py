@@ -3,36 +3,37 @@ from aiogram.dispatcher import FSMContext
 from magic_filter import F
 
 from filters.admins import IsBotAdminFilter
+from handlers.admin.helpers import build_categories_text
 from loader import dp, lesdb
-from states.admin import AdminStates
+from states.admin import AdminDeleteStates
+from utils.helpers import number_text_alert
 
 
-@dp.message_handler(IsBotAdminFilter(), F.text == "Kategoriya o'chirish", state="*")
+@dp.message_handler(IsBotAdminFilter(), F.text == "🗑 Kategoriya", state="*")
 async def handle_delete_categories_main(message: types.Message, state: FSMContext):
     await state.finish()
 
-    categories = await lesdb.get_categories()
-
-    categories_str = "Kategoriyalar\n\n"
-
-    for category in categories:
-        categories_str += f"{category['id']}. {category['name']}\n"
+    categories = await lesdb.get_lessons_categories()
 
     await message.answer(
-        text=f"{categories_str}\nO'chirmoqchi bo'lgan kategoriya ID raqamini kiriting"
+        text=build_categories_text(categories) + "\nO'chirmoqchi bo'lgan kategoriya ID raqamini kiriting"
     )
-    await AdminStates.DELETE_CATEGORY.set()
+    await AdminDeleteStates.FREE_CATEGORY.set()
 
 
-@dp.message_handler(state=AdminStates.DELETE_CATEGORY, content_types=['text'])
-async def handle_delete_category_state(message: types.Message, state: FSMContext):
+@dp.message_handler(state=AdminDeleteStates.FREE_CATEGORY, content_types=['text'])
+async def handle_delete_category_state(message: types.Message):
     if message.text.isdigit():
         category_id = int(message.text)
-        await lesdb.delete_category(category_id)
-        await message.answer(
-            text="O'chirildi!"
-        )
-        return
-    await message.answer(
-        text="Faqat raqam kiritilishi lozim!"
-    )
+        check = await lesdb.check_category(category_id)
+
+        if check:
+            await lesdb.delete_category(category_id)
+            await message.answer(
+                text="O'chirildi!"
+            )
+            return
+        else:
+            await message.answer(text="Bu ID raqamli kategoriya yo'q!")
+            return
+    await number_text_alert(message)

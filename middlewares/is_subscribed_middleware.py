@@ -2,7 +2,7 @@ from aiogram.dispatcher.handler import CancelHandler
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram import types
 
-from keyboards.inline.user.ibuttons import subscribe_ibtn
+from keyboards.inline.user.main import subscribe_ibtn
 from utils.helpers import is_subscribed
 
 class SubscriptionMiddleware(BaseMiddleware):

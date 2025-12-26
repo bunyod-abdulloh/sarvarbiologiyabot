@@ -1,12 +1,6 @@
 from aiogram import types
 
-from loader import lesdb, pdb
-
-
-def paginate(files, per_page=50):
-    from utils.helpers import extracter
-    items = extracter(files, per_page)
-    return items, len(items)
+from loader import lesdb
 
 
 def paginate_category(files, per_page=10):
@@ -87,7 +81,7 @@ def extract_masala_number(text: str) -> str | None:
     return "".join(digits)
 
 
-async def save_free_lesson_file(
+async def save_lesson_file(
         lesson_id: int,
         media,
         caption: str | None
@@ -98,28 +92,7 @@ async def save_free_lesson_file(
     if not lesson_number:
         return False
 
-    await lesdb.add_to_free_lessons_files(
-        lesson_number=lesson_number,
-        lesson_id=lesson_id,
-        file_id=file_id,
-        file_type=file_type,
-        caption=f"{lesson_number} - masala"
-    )
-    return True
-
-
-async def save_paid_lesson_file(
-        lesson_id: int,
-        media,
-        caption: str | None
-):
-    file_id, file_type, _ = get_file_id_caption(media)
-    lesson_number = extract_masala_number(caption or "")
-
-    if not lesson_number:
-        return False
-
-    await pdb.add_to_pd_lessons_files(
+    await lesdb.add_lesson_files(
         lesson_number=lesson_number,
         lesson_id=lesson_id,
         file_id=file_id,

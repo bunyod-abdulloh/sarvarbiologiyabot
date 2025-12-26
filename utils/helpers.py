@@ -1,3 +1,5 @@
+from aiogram import types
+
 from data.config import CHANNELS
 from keyboards.inline.admin.main_ikbs import check_or_cancel_ikb, send_answer_ikb
 from loader import bot
@@ -36,3 +38,8 @@ def extracter(all_medias, delimiter):
     for e in range(0, len(all_medias), delimiter):
         empty_list.append(all_medias[e:e + delimiter])
     return empty_list
+
+
+async def number_text_alert(message: types.Message):
+    text = "Faqat raqam kiritilishi lozim!"
+    await message.answer(text=text)

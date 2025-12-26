@@ -3,7 +3,8 @@ from aiogram.dispatcher import FSMContext
 
 from handlers.private.free_lessons.pagination import change_page_category
 from keyboards.inline.user.callbacks import free_less_cat_cb
-from keyboards.inline.user.ibuttons import main_page_ibtn, view_free_lessons_ikb, view_paid_lessons_ikb
+from keyboards.inline.user.free import view_free_subcategories_ikb
+from keyboards.inline.user.main import main_page_ibtn
 from loader import dp, lesdb
 from utils.helpers import extracter
 
@@ -19,21 +20,21 @@ async def open_free_category(call: types.CallbackQuery, callback_data: dict):
 
     category_id = int(callback_data["value"])
 
-    files = await lesdb.get_lessons_by_category_id(category_id)
+    files = await lesdb.get_subcategories(category_id)
 
-    items = extracter(files, 50)
+    items = extracter(files, 10)
 
     if not items:
-        await call.message.answer("Bu kategoriyada hozircha masala yo‘q.")
+        await call.message.answer("Bu subkategoriyada hozircha masala yo‘q.")
         return
 
     all_pages = len(items)
 
-    key = view_free_lessons_ikb(
+    key = view_free_subcategories_ikb(
         items[0], 1, all_pages, category_id
     )
     await call.message.edit_text(
-        text="Kerakli masalani tanlang", reply_markup=key
+        text="Kerakli subkategoriyani tanlang", reply_markup=key
     )
 
 

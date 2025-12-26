@@ -6,21 +6,17 @@ class AdminsDB:
         self.db = db
         
     async def add_send_status(self):
-        sql = "INSERT INTO admins (status) VALUES (FALSE)"
-        await self.db.execute(sql, execute=True)
+        sql = "INSERT INTO send_table (status) VALUES (FALSE)"
+        await self.db.execute(sql)
 
     async def update_status_true(self):
-        sql = "UPDATE admins SET status = TRUE"
-        await self.db.execute(sql, execute=True)
+        sql = "UPDATE send_table SET status = TRUE"
+        await self.db.execute(sql)
 
     async def update_status_false(self):
-        sql = "UPDATE admins SET status = FALSE"
-        await self.db.execute(sql, execute=True)
+        sql = "UPDATE send_table SET status = FALSE"
+        await self.db.execute(sql)
 
     async def get_send_status(self):
-        sql = "SELECT status FROM admins"
-        return await self.db.execute(sql, fetchval=True)
-
-    async def drop_table_admins(self):
-        sql = "DROP TABLE admins"
-        await self.db.execute(sql, execute=True)
+        sql = "SELECT status FROM send_table"
+        return await self.db.fetchval(sql)

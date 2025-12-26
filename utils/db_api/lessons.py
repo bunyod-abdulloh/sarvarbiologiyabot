@@ -5,211 +5,172 @@ class LessonsDB:
     def __init__(self, db: Database):
         self.db = db
 
-    async def add_to_free_lessons(self, category_id):
-        row_id = await self.db.execute(
+    async def add_category(self, category_name: str) -> int:
+        category_id = await self.db.fetchval(
             """
-            INSERT INTO free_lessons (category_id)
-            VALUES ($1)            
+            INSERT INTO categories (name)
+            VALUES ($1)
+            ON CONFLICT (name) DO NOTHING
             RETURNING id
             """,
-            category_id,
-            fetchval=True
+            category_name
         )
 
-        if row_id:
-            return row_id
+        if category_id:
+            return category_id
 
-        return await self.db.execute(
-            "SELECT id FROM free_lessons WHERE category_id = $1",
-            category_id,
-            fetchval=True
+        return await self.db.fetchval(
+            "SELECT id FROM categories WHERE name = $1",
+            category_name
         )
 
-    async def add_to_free_lessons_files(self, lesson_number, lesson_id, file_id, file_type, caption):
+    async def add_subcategory(self, category_id: int, subcategory_name: str) -> int:
         sql = """
-            INSERT INTO free_lessons_files (lesson_number, lesson_id, file_id, file_type, caption) VALUES ($1, $2, $3, $4, $5)
-            """
-        await self.db.execute(sql, lesson_number, lesson_id, file_id, file_type, caption, execute=True)
+            INSERT INTO subcategories (category_id, name)
+            VALUES ($1, $2)
+            ON CONFLICT (category_id, name)
+            DO UPDATE SET name = EXCLUDED.name
+            RETURNING id
+        """
+        return await self.db.fetchval(sql, category_id, subcategory_name)
 
-    async def get_free_lessons_by_category(self):
+    async def add_lessons(self, subcategory_id):
+        sql = """
+            INSERT INTO lessons (subcategory_id) VALUES ($1) RETURNING id    
+            """
+        return await self.db.fetchval(sql, subcategory_id)
+
+    async def add_lesson_files(self, lesson_number, lesson_id, file_id, file_type, caption):
+        sql = """
+            INSERT INTO lesson_files (lesson_number, lesson_id, file_id, file_type, caption) VALUES ($1, $2, $3, $4, $5)
+            """
+        await self.db.execute(sql, lesson_number, lesson_id, file_id, file_type, caption)
+
+    async def get_free_categories(self):
         sql = """
             SELECT DISTINCT
                 c.id,
                 c.name
             FROM categories c
-            JOIN free_lessons f
-                ON f.category_id = c.id
-            JOIN free_lessons_files ff
-                ON ff.lesson_id = f.id
-            ORDER BY c.id
+            JOIN subcategories s ON s.category_id = c.id
+            JOIN lessons l ON l.subcategory_id = s.id
+            WHERE l.is_paid = FALSE
+            ORDER BY c.name
         """
-        return await self.db.execute(sql, fetch=True)
+        return await self.db.fetch(sql)
+
 
     async def get_lessons_categories(self):
         sql = """
-            SELECT DISTINCT id, name FROM categories ORDER BY name
+            SELECT DISTINCT id, name FROM categories ORDER BY id
         """
-        return await self.db.execute(sql, fetch=True)
-
-    async def get_categories(self):
-        sql = """
-            SELECT id, name FROM categories ORDER BY id ASC
-            """
-        return await self.db.execute(sql, fetch=True)
+        return await self.db.fetch(sql)
 
     async def set_category_name(self, name, category_id):
         sql = """
             UPDATE categories SET name = $1 WHERE id = $2
             """
-        await self.db.execute(sql, name, category_id, execute=True)
+        await self.db.execute(sql, name, category_id)
 
-
-    async def get_paid_lessons_by_category(self):
+    async def get_free_lessons(self, subcategory_id: int):
         sql = """
-            SELECT DISTINCT
-                c.id,
-                c.name
-            FROM categories c
-            JOIN paid_lessons f
-                ON f.category_id = c.id
-            JOIN paid_lessons_files ff
-                ON ff.lesson_id = f.id
-            ORDER BY c.id
+            SELECT 
+                lf.id AS lesson_id,
+                lf.lesson_number,
+                lf.caption,
+                lf.lesson_id AS ls_id
+            FROM lessons l
+            JOIN lesson_files lf ON lf.lesson_id = l.id
+            WHERE l.subcategory_id = $1
+              AND l.is_paid = FALSE
+            ORDER BY lf.lesson_number, lf.id
         """
-        return await self.db.execute(sql, fetch=True)
+        return await self.db.fetch(sql, subcategory_id)
 
-    async def get_lessons_by_category_id(self, category_id):
+    async def get_subcategories(self, category_id):
+        sql = """
+            SELECT DISTINCT ON (name) name, id FROM subcategories WHERE category_id = $1
+            """
+        return await self.db.fetch(sql, category_id)
+
+    async def get_related_subcategories(self, subcategory_id: int):
         sql = """
             SELECT
-                ROW_NUMBER() OVER (ORDER BY f.created_at) AS row_number,
-                f.id        AS file_row_id,
-                f.lesson_number,
-                f.lesson_id,
-                f.file_id,
-                f.file_type,
-                f.caption,
-                f.created_at
-            FROM (
-                SELECT DISTINCT ON (f.lesson_number)
-                    f.*
-                FROM free_lessons_files f
-                JOIN free_lessons l ON l.id = f.lesson_id
-                WHERE l.category_id = $1
-                ORDER BY f.lesson_number, f.created_at
-            ) f
-            ORDER BY f.created_at 
-            """
-        return await self.db.execute(sql, category_id, fetch=True)
-
-    async def get_lessons_paid_by_category_id(self, category_id):
-        sql = """
-            SELECT
-                ROW_NUMBER() OVER (ORDER BY f.created_at) AS row_number,
-                f.id        AS file_row_id,
-                f.lesson_number,
-                f.lesson_id,
-                f.file_id,
-                f.file_type,
-                f.caption,
-                f.created_at
-            FROM (
-                SELECT DISTINCT ON (f.lesson_id)
-                    f.*
-                FROM paid_lessons_files f
-                JOIN paid_lessons l ON l.id = f.lesson_id
-                WHERE l.category_id = $1
-                ORDER BY f.lesson_id, f.created_at
-            ) f
-            ORDER BY f.created_at 
-            """
-        return await self.db.execute(sql, category_id, fetch=True)
-
-    async def get_lesson_free(self):
-        sql = """
-            SELECT id, position, type, file_id, caption FROM lessons WHERE paid = FALSE
-            """
-        return await self.db.execute(sql, fetch=True)
+                id,
+                category_id,
+                name                
+            FROM subcategories
+            WHERE category_id = (
+                SELECT category_id
+                FROM subcategories
+                WHERE id = $1
+            )
+            ORDER BY name
+        """
+        return await self.db.fetch(sql, subcategory_id)
 
     async def get_lesson_by_lesson_id(self, lesson_id):
         sql = """
-            SELECT file_type, file_id, caption FROM free_lessons_files WHERE lesson_id = $1
+            SELECT l.subcategory_id, lf.file_type, file_id, caption FROM lesson_files lf 
+            JOIN lessons l ON lf.lesson_id = l.id            
+            WHERE lf.id = $1
             """
-        return await self.db.execute(sql, lesson_id, fetch=True)
+        return await self.db.fetch(sql, lesson_id)
 
-    async def check_free_lesson(self, lesson_id):
-        sql = """
-            SELECT EXISTS (SELECT 1 FROM free_lessons_files ff WHERE ff.id = $1)
-            """
-        return await self.db.execute(sql, lesson_id, fetchval=True)
-
-    async def check_paid_lesson_category_exists(self, paid_file_id: int, category_id: int) -> bool:
+    async def lesson_file_exists(
+            self,
+            lesson_file_id: int,
+            subcategory_id: int
+    ) -> bool:
         sql = """
             SELECT EXISTS (
                 SELECT 1
-                FROM paid_lessons_files plf
-                JOIN paid_lessons pl ON pl.id = plf.lesson_id
-                JOIN categories c ON c.id = pl.category_id
-                WHERE plf.id = $1 AND c.id = $2 
+                FROM lesson_files lf
+                JOIN lessons l ON l.id = lf.lesson_id
+                WHERE lf.id = $1
+                  AND l.subcategory_id = $2
             )
         """
-        return await self.db.execute(sql, paid_file_id, category_id, fetchval=True)
+        return await self.db.fetchval(sql, lesson_file_id, subcategory_id)
 
-    async def check_free_lesson_category_exists(self, paid_file_id: int, category_id: int) -> bool:
+    async def check_category(self, category_id: int) -> bool:
         sql = """
-            SELECT EXISTS (
-                SELECT 1
-                FROM free_lessons_files flf
-                JOIN free_lessons fl ON fl.id = flf.lesson_id
-                JOIN categories c ON c.id = fl.category_id
-                WHERE flf.id = $1 AND c.id = $2 
-            )
-        """
-        return await self.db.execute(sql, paid_file_id, category_id, fetchval=True)
+            SELECT EXISTS (SELECT 1 FROM categories WHERE id = $1) 
+            """
+        return await self.db.fetchval(sql, category_id)
+
+    async def check_subcategory(self, category_id: int, subcategory_id: int) -> bool:
+        sql = """
+            SELECT EXISTS (SELECT 1 FROM subcategories WHERE category_id = $1 AND id = $2) 
+            """
+        return await self.db.fetchval(sql, category_id, subcategory_id)
 
     async def set_free_lesson(self, file_id, file_type, caption, lesson_number, lesson_id):
         sql = """
-            UPDATE free_lessons_files SET file_id = $1, file_type = $2, caption = $3, lesson_number = $4 WHERE id = $5
+            UPDATE lesson_files SET file_id = $1, file_type = $2, caption = $3, lesson_number = $4 WHERE id = $5
             """
-        await self.db.execute(sql, file_id, file_type, caption, lesson_number, lesson_id, execute=True)
+        await self.db.execute(sql, file_id, file_type, caption, lesson_number, lesson_id)
 
-    async def set_paid_lesson(self, file_id, file_type, caption, lesson_number, lesson_id):
+    async def set_subcategory_name(self, subcategory_name, subcategory_id):
         sql = """
-            UPDATE paid_lessons_files SET file_id = $1, file_type = $2, caption = $3, lesson_number = $4 WHERE id = $5
+            UPDATE subcategories SET name = $1 WHERE id = $2
             """
-        await self.db.execute(sql, file_id, file_type, caption, lesson_number, lesson_id, execute=True)
-
-    async def get_paid_lesson(self, lesson_id):
-        sql = """
-            SELECT file_type, file_id, caption FROM paid_lessons_files WHERE lesson_id = $1
-            """
-        return await self.db.execute(sql, lesson_id, fetch=True)
-
-    async def get_lesson_category_id_by_lesson_id(self, lesson_id):
-        sql = """
-            SELECT category_id FROM free_lessons WHERE id = $1
-            """
-        return await self.db.execute(sql, lesson_id, fetchval=True)
-
-    async def get_paid_categories(self, lesson_id):
-        sql = """
-            SELECT category_id FROM paid_lessons WHERE id = $1
-            """
-        return await self.db.execute(sql, lesson_id, fetchval=True)
+        await self.db.execute(sql, subcategory_name, subcategory_id)
 
     async def delete_category(self, category_id):
         sql = """
             DELETE FROM categories WHERE id = $1
             """
-        await self.db.execute(sql, category_id, execute=True)
+        await self.db.execute(sql, category_id)
 
-    async def delete_lesson_free(self, lesson_id):
+    async def delete_subcategory(self, subcategory_id):
         sql = """
-            DELETE FROM free_lessons_files WHERE id = $1
+            DELETE FROM subcategories WHERE id = $1
             """
-        await self.db.execute(sql, lesson_id, execute=True)
+        await self.db.execute(sql, subcategory_id)
 
-    async def delete_lesson_paid(self, lesson_id):
+    async def delete_lesson(self, lesson_id):
         sql = """
-            DELETE FROM paid_lessons_files WHERE id = $1
+            DELETE FROM lessons WHERE id = $1
             """
-        await self.db.execute(sql, lesson_id, execute=True)
+        await self.db.execute(sql, lesson_id)

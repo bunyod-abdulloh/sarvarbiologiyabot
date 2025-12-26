@@ -3,25 +3,33 @@ from aiogram.types import ReplyKeyboardMarkup
 
 def admin_main_dkb():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.row("😎 Umumiy foydalanuvchilar soni")
-    kb.row("💸 Pullik foydalanuvchilar")
+    kb.row("😎 Foydalanuvchilar soni")
     kb.row("✅ Oddiy e'lon yuborish")
     kb.row("🎥 Media e'lon yuborish")
-    kb.row("💰 Pullik dars qo'shish")
-    kb.row("🆓 Bepul dars qo'shish")
-    kb.row("📝 Darslarni o'zgartirish")
+    kb.row("✅ Dars qo'shish", "♻️ Dars o'zgartirish")
+    kb.row("🗑 Dars o'chirish")
     kb.row("🏡 Bosh sahifa")
+    return kb
+
+
+def admin_add_dkb():
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.row("🆓 Bepul")
+    kb.row("⬅️ Ortga")
     return kb
 
 
 def admin_edit_dkb():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.row("Kategoriya o'zgartirish")
-    kb.row("Dars o'zgartirish (pullik)")
-    kb.row("Dars o'zgartirish (bepul)")
-    kb.row("Kategoriya o'chirish")
-    kb.row("Dars o'chirish (pullik)")
-    kb.row("Dars o'chirish (bepul)")
-    kb.row("Ortga")
+    kb.row("♻️ Kategoriya", "♻️ Subkategoriya")
+    kb.row("♻️ Dars")
+    kb.row("🔙 Ortga")
+    return kb
 
+
+def admin_delete_dkb():
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.row("🗑 Kategoriya", "🗑 Subkategoriya")
+    kb.row("🗑 Dars")
+    kb.row("◀️ Ortga")
     return kb

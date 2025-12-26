@@ -3,7 +3,7 @@ from aiogram.dispatcher import FSMContext
 from magic_filter import F
 
 from data.config import ADMINS
-from keyboards.inline.user.ibuttons import image_or_text_ibtn
+from keyboards.inline.user.main import image_or_text_ibtn
 from loader import dp
 from states.users import UsersStates
 from utils.helpers import send_to_admin
@@ -24,10 +24,12 @@ async def handle_send_to_admin_main(call: types.CallbackQuery, state: FSMContext
 
 @dp.callback_query_handler(F.data == "purchase_receipt", state="*")
 async def handle_purchase_receipt(call: types.CallbackQuery):
-    await call.message.edit_text(
-        text="Chek rasmini yuboring\n\n(faqat rasm! Fayl ko'rinishida bo'lmasin)"
-    )
-    await UsersStates.PHOTO.set()
+    await call.answer(text="Bo'lim hozircha ishlamayapti!", show_alert=True)
+
+    # await call.message.edit_text(
+    #     text="Chek rasmini yuboring\n\n(faqat rasm! Fayl ko'rinishida bo'lmasin)"
+    # )
+    # await UsersStates.PHOTO.set()
 
 
 @dp.message_handler(state=UsersStates.PHOTO, content_types=types.ContentType.PHOTO)

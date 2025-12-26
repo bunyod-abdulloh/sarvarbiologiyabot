@@ -8,7 +8,7 @@ from magic_filter import F
 from filters.admins import IsBotAdminFilter
 from handlers.private.start import bot_start
 from keyboards.default.admin.main import admin_main_dkb
-from loader import dp, udb, pdb, admdb
+from loader import dp, udb, admdb
 from states.admin import AdminStates
 from utils.db_functions import send_media_group_to_users, send_message_to_users
 
@@ -21,6 +21,9 @@ WARNING_TEXT = (
 ALERT_TEXT = "Xabar yuborish jarayoni yoqilgan! Hisobot kelganidan so'ng xabar yuborishingiz mumkin!"
 
 
+@dp.message_handler(IsBotAdminFilter(), F.text == "◀️ Ortga", state="*")
+@dp.message_handler(IsBotAdminFilter(), F.text == "🔙 Ortga", state="*")
+@dp.message_handler(IsBotAdminFilter(), F.text == "⬅️ Ortga", state="*")
 @dp.message_handler(IsBotAdminFilter(), Command(commands="admin"), state="*")
 async def admin_main_page(message: types.Message, state: FSMContext):
     await state.finish()
@@ -32,19 +35,10 @@ async def back_to_main_page(message: types.Message, state: FSMContext):
     await bot_start(message, state)
 
 
-@dp.message_handler(IsBotAdminFilter(), F.text == "😎 Umumiy foydalanuvchilar soni")
+@dp.message_handler(IsBotAdminFilter(), F.text == "😎 Foydalanuvchilar soni")
 async def user_count(message: types.Message):
     count = await udb.count_users()
     await message.answer(f"Umumiy foydalanuvchilar soni: {count}")
-
-
-@dp.message_handler(IsBotAdminFilter(), F.text == "💸 Pullik foydalanuvchilar", state="*")
-async def handle_count_paid_users(message: types.Message, state: FSMContext):
-    await state.finish()
-    count = await pdb.count_users_pd()
-    await message.answer(
-        text=f"Pullik foydalanuvchilar soni: {count}"
-    )
 
 
 @dp.message_handler(IsBotAdminFilter(), F.text == "✅ Oddiy e'lon yuborish", state="*")

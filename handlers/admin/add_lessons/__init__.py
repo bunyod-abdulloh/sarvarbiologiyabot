@@ -1,2 +1,2 @@
 from . import free
-from . import paid
+from . import main

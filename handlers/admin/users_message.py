@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 
 from keyboards.inline.admin.callbacks import check_cancel_cb, answer_cb
-from loader import dp, bot, pdb
+from loader import dp, bot
 from states.admin import AdminStates
 
 
@@ -48,7 +48,7 @@ async def handle_user_cancel_message(call: types.CallbackQuery, callback_data: d
             text="To'lovingiz admin tomonidan tasdiqlandi! Darslarimizdan foydalanishingiz mumkin!",
             reply_markup=None
         )
-        await pdb.add_to_paid_users(telegram_id)
+
         await call.answer(cache_time=0)
         await call.message.answer(
             text="Tasdiq xabari foydalanuvchiga yuborildi!"
