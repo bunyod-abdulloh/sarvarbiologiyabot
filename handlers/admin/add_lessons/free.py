@@ -42,8 +42,6 @@ async def free_set_category(message: types.Message, state: FSMContext):
         )
 
         await AdminStates.FREE_SUBCATEGORY.set()
-    else:
-        await message.answer(text="Bu kategoriyada subkategoriyalar mavjud emas!")
 
 
 @dp.message_handler(state=AdminStates.FREE_SUBCATEGORY, content_types=['text'])
