@@ -31,7 +31,7 @@ from loader import bot, admdb, udb
 #     return success_count, failed_count
 
 
-async def send_media_group_to_users(media_group: types.MediaGroup):
+async def send_media_group_to_users(media_group: types.MediaGroup, message: types.Message):
     await admdb.update_status_true()
     all_users = await udb.select_all_users()
     success_count, failed_count = 0, 0
@@ -49,8 +49,12 @@ async def send_media_group_to_users(media_group: types.MediaGroup):
             await asyncio.sleep(30)
         await asyncio.sleep(0.05)
     await admdb.update_status_false()
-
-    return success_count, failed_count
+    await message.answer(
+        text=f"Xabar yuborildi!\n\n"
+             f"Yuborildi: {success_count}\n"
+             f"Yuborilmadi: {failed_count}"
+    )
+    
 
 
 # Foydalanuvchilarni batch bo'lib olish

@@ -81,5 +81,5 @@ async def finalize_album(gid, message, state):
             "type": obj.content_type,
             "caption": obj.caption}
         )
-        await asyncio.sleep(0.05)
-    await send_media_group_to_users(media_group)
+
+    await send_media_group_to_users(media_group, message)
