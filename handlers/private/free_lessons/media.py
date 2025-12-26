@@ -14,7 +14,7 @@ async def handle_no_slctd(call: types.CallbackQuery, callback_data: dict):
     lesson_id = int(callback_data.get("value"))
     current_page = int(callback_data.get("c_pg"))
     lesson = await lesdb.get_lesson_by_lesson_id(lesson_id)
-    print(lesson_id)
+
     subcategory_id = lesson[0]['subcategory_id']
 
     for media in lesson:
