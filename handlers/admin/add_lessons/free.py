@@ -36,12 +36,13 @@ async def free_set_category(message: types.Message, state: FSMContext):
 
         for index, s in enumerate(subcategories, 1):
             subcategories_str += f"{index}. {s['name']}\n"
+    else:
+        subcategories_str = "Ushbu kategoriyada subkategoriya mavjud emas!\n"
+    await message.answer(
+        text=f"{subcategories_str}\nSubkategoriya nomini kiriting"
+    )
 
-        await message.answer(
-            text=f"{subcategories_str}\nSubkategoriya nomini kiriting"
-        )
-
-        await AdminStates.FREE_SUBCATEGORY.set()
+    await AdminStates.FREE_SUBCATEGORY.set()
 
 
 @dp.message_handler(state=AdminStates.FREE_SUBCATEGORY, content_types=['text'])
