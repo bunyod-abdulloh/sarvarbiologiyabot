@@ -10,15 +10,15 @@ from utils.db_api.lessons import LessonsDB
 from utils.db_api.users import UsersDB
 
 bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
-# storage = RedisStorage2(
-#     host='localhost',
-#     port=6379,
-#     db=5,
-#     state_ttl=3600,
-#     data_ttl=3600,
-#     password=REDIS_PASS
-# )
-storage = MemoryStorage()
+storage = RedisStorage2(
+    host='localhost',
+    port=6379,
+    db=5,
+    state_ttl=3600,
+    data_ttl=3600,
+    password=REDIS_PASS
+)
+# storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 db = Database()
 udb = UsersDB(db)
