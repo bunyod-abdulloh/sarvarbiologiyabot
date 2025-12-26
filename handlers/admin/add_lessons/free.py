@@ -26,7 +26,7 @@ async def free_add_start(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=AdminStates.FREE_CATEGORY, content_types=types.ContentType.TEXT)
 async def free_set_category(message: types.Message, state: FSMContext):
-    category_id = await lesdb.add_category(int(message.text))
+    category_id = await lesdb.add_category(message.text)
     await state.update_data(category_id=int(category_id))
 
     subcategories = await lesdb.get_subcategories(category_id)
