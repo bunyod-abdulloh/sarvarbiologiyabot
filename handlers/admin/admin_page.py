@@ -1,4 +1,4 @@
-from typing import List
+import asyncio
 
 from aiogram import types
 from aiogram.dispatcher import FSMContext
@@ -10,7 +10,9 @@ from handlers.private.start import bot_start
 from keyboards.default.admin.main import admin_main_dkb
 from loader import dp, udb, admdb
 from states.admin import AdminStates
-from utils.db_functions import send_media_group_to_users, send_message_to_users
+from utils.db_functions import send_message_to_users
+from utils.helpers import album_tasks, albums, finalize_album
+from utils.misc import rate_limit
 
 WARNING_TEXT = (
     "Xabar yuborishdan oldin postingizni yaxshilab tekshirib oling!\n\n"
@@ -71,24 +73,23 @@ async def send_media_to_bot(message: types.Message, state: FSMContext):
         await AdminStates.SEND_MEDIA_TO_USERS.set()
 
 
-@dp.message_handler(state=AdminStates.SEND_MEDIA_TO_USERS, content_types=types.ContentTypes.ANY, is_media_group=True)
-async def send_media_to_bot_second(message: types.Message, album: List[types.Message], state: FSMContext):
-    await state.finish()
-    await message.answer(text="Xabar yuborish boshlandi...", reply_markup=types.ReplyKeyboardRemove())
-    try:
-        media_group = types.MediaGroup()
-
-        for obj in album:
-            file_id = obj.photo[-1].file_id if obj.photo else obj[obj.content_type].file_id
-            media_group.attach(
-                {"media": file_id, "type": obj.content_type, "caption": obj.caption}
-            )
-    except Exception as err:
-        await message.answer(f"Media qo'shishda xatolik!: {err}")
+@dp.message_handler(
+    state=AdminStates.SEND_MEDIA_TO_USERS,
+    content_types=types.ContentTypes.ANY
+)
+@rate_limit(0)
+async def collect_album(message: types.Message, state: FSMContext):
+    if not message.media_group_id:
+        await message.answer("Media group yuboring")
         return
 
-    success_count, failed_count = await send_media_group_to_users(media_group)
+    gid = message.media_group_id
+    albums[gid].append(message)
 
-    await message.answer(
-        f"Media {success_count} ta foydalanuvchiga yuborildi!\n{failed_count} ta foydalanuvchi botni bloklagan."
+    # Agar oldingi task bo‘lsa — bekor qilamiz
+    if gid in album_tasks:
+        album_tasks[gid].cancel()
+
+    album_tasks[gid] = asyncio.create_task(
+        finalize_album(gid, message, state)
     )
