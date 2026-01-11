@@ -89,7 +89,7 @@ class LessonsDB:
 
     async def get_subcategories(self, category_id):
         sql = """
-            SELECT DISTINCT ON (name) name, id FROM subcategories WHERE category_id = $1
+            SELECT name, id FROM subcategories WHERE category_id = $1 ORDER BY id
             """
         return await self.db.fetch(sql, category_id)
 
