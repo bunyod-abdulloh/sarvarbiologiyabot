@@ -81,22 +81,30 @@ def extract_masala_number(text: str) -> str | None:
     return "".join(digits)
 
 
-async def save_lesson_file(
-        lesson_id: int,
-        media,
-        caption: str | None
-):
+async def save_lesson_file(media, caption: str | None):
     file_id, file_type, _ = get_file_id_caption(media)
-    lesson_number = extract_masala_number(caption or "")
 
-    if not lesson_number:
-        return False
+    result = {}
+
+    for line in caption.strip().splitlines():
+        if line.startswith("#") and ":" in line:
+            key, value = line[1:].split(":", 1)  # # ni olib tashlaymiz
+            result[key.strip()] = value.strip()
+
+    category = result.get("category")
+    subcategory = result.get("subcategory")
+    last = result.get("last")
+    caption = result.get("caption")
+
+    category_id = await lesdb.add_category(category)
+    subcategory_id = await lesdb.add_subcategory(category_id, subcategory)
+    lesson_id = await lesdb.add_lessons(subcategory_id)
 
     await lesdb.add_lesson_files(
-        lesson_number=lesson_number,
+        lesson_number=last,
         lesson_id=lesson_id,
         file_id=file_id,
         file_type=file_type,
-        caption=f"{lesson_number} - masala"
+        caption=caption
     )
     return True

@@ -13,15 +13,17 @@ from utils.lessons import extract_masala_number, get_file_id_caption, save_lesso
 @dp.message_handler(F.text == "🆓 Bepul", state="*")
 async def free_add_start(message: types.Message, state: FSMContext):
     await state.finish()
+    await message.answer("Birinchi dars ID ni yuboring")
+    await AdminStates.FREE_LESSONS_ONE.set()
 
-    await AdminStates.FREE_CATEGORY.set()
-    categories = await lesdb.get_lessons_categories()
-    text = "Mavjud kategoriyalar\n\n"
-    for index, c in enumerate(categories, 1):
-        text += f"{index}. {c['name']}\n"
-    await message.answer(
-        f"{text}\nKategoriya nomini kiriting"
-    )
+    # await AdminStates.FREE_CATEGORY.set()
+    # categories = await lesdb.get_lessons_categories()
+    # text = "Mavjud kategoriyalar\n\n"
+    # for index, c in enumerate(categories, 1):
+    #     text += f"{index}. {c['name']}\n"
+    # await message.answer(
+    #     f"{text}\nKategoriya nomini kiriting"
+    # )
 
 
 @dp.message_handler(state=AdminStates.FREE_CATEGORY, content_types=types.ContentType.TEXT)
@@ -67,18 +69,18 @@ async def free_set_first_id(message: types.Message, state: FSMContext):
 @dp.message_handler(state=AdminStates.FREE_LESSONS_TWO)
 async def free_add_by_range(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    category_id = data.get("category_id")
-    subcategory_name = data.get("subcategory_name")
+    # category_id = data.get("category_id")
+    # subcategory_name = data.get("subcategory_name")
 
     for msg_id in range(data["first_id"], int(message.text) + 1):
-        subcategory_id = await lesdb.add_subcategory(category_id, subcategory_name)
-        lesson_id = await lesdb.add_lessons(subcategory_id)
+        # subcategory_id = await lesdb.add_subcategory(category_id, subcategory_name)
+        # lesson_id = await lesdb.add_lessons(subcategory_id)
         media = await bot.forward_message(
             chat_id=ADMINS[0],
             from_chat_id=BASE_CHANNEL,
             message_id=msg_id
         )
-        await save_lesson_file(lesson_id, media, media.caption)
+        await save_lesson_file(media, media.caption)
 
     await message.answer("Bepul darslar qo‘shildi")
     await state.finish()
