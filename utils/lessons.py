@@ -91,8 +91,8 @@ async def save_lesson_file(media, caption: str | None):
             key, value = line[1:].split(":", 1)  # # ni olib tashlaymiz
             result[key.strip()] = value.strip()
 
-    category = result.get("category")
-    subcategory = result.get("subcategory")
+    category = result.get("cat")
+    subcategory = result.get("subcat")
     last = result.get("last")
     caption = result.get("caption")
 

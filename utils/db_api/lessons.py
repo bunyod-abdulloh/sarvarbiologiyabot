@@ -15,7 +15,7 @@ class LessonsDB:
             """,
             category_name
         )
-
+        print(category_id)
         if category_id:
             return category_id
 
